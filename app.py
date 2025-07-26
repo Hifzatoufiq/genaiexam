@@ -1,11 +1,10 @@
 import streamlit as st
+st.set_page_config(page_title="🧠 GenAI Final Exam", layout="wide")
+
 import pandas as pd
 from datetime import datetime
 import os
 import base64
-
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="🧠 GenAI Final Exam", layout="wide")
 
 # --- BACKGROUND IMAGE FROM LOCAL FILE ---
 def set_bg_from_local(image_file):
@@ -15,7 +14,6 @@ def set_bg_from_local(image_file):
     css = f"""
     <style>
     body {{
-       
         background-size: cover;
         background-attachment: fixed;
         background-repeat: no-repeat;
@@ -52,7 +50,6 @@ def set_bg_from_local(image_file):
     """
     st.markdown(css, unsafe_allow_html=True)
 
-
 # --- QUESTIONS ---
 questions = [
     {"question": "What is ChatGPT primarily used for?", "options": ["A. Cooking", "B. Writing and Chatting", "C. Video Editing", "D. Drawing"], "answer": "B"},
@@ -87,7 +84,6 @@ questions = [
     {"question": "Runway helps with?", "options": ["A. Code Testing", "B. AI-based Video Creation", "C. SEO Ranking", "D. PowerPoint"], "answer": "B"},
 ]
 
-# --- DATA STORAGE FILE ---
 RESULTS_FILE = "student_results.csv"
 
 def save_result(name, course, start_date, score, total):
@@ -120,16 +116,21 @@ if "start_exam" in st.session_state and st.session_state.start_exam:
     for i, q in enumerate(questions):
         with st.container():
             st.markdown(f"<div class='question'><strong>Q{i+1}:</strong> {q['question']}</div>", unsafe_allow_html=True)
-            selected = st.radio("", options=q['options'], key=f"q{i}")
-            selected_answers.append(selected.split(".")[0])  # Store only A/B/C/D
+            selected = []
+            for opt in q['options']:
+                if st.checkbox(opt, key=f"q{i}_{opt}"):
+                    selected.append(opt.split(".")[0])
+            selected_answers.append(selected)
 
     if st.button("✅ Submit Exam"):
         score = 0
+        total = len(questions)
+
         for i, q in enumerate(questions):
-            if selected_answers[i] == q["answer"]:
+            # Accept only single correct answer
+            if selected_answers[i] == [q["answer"]]:
                 score += 1
 
-        total = len(questions)
         percentage = (score / total) * 100
 
         st.success(f"🎉 {name}, you scored {score}/{total} ({percentage:.2f}%)")
